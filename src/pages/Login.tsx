@@ -16,15 +16,28 @@ const Login = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
 
+  const redirectByRole = async (userId: string) => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (data?.role === "admin") {
+      navigate("/admin");
+    } else {
+      navigate("/dashboard");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Welcome back!");
-        navigate("/");
+        await redirectByRole(data.user.id);
       } else {
         const { error } = await supabase.auth.signUp({
           email,
@@ -32,8 +45,7 @@ const Login = () => {
           options: { data: { full_name: fullName } },
         });
         if (error) throw error;
-        toast.success("Account created successfully!");
-        navigate("/");
+        toast.success("Account created! Please check your email to verify.");
       }
     } catch (error: any) {
       toast.error(error.message || "Authentication failed");

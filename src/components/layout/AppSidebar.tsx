@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -18,9 +19,10 @@ import {
   ChevronRight,
   LogOut,
   Sparkles,
+  Shield,
 } from "lucide-react";
 
-const navItems = [
+const baseNavItems = [
   { title: "Dashboard", path: "/", icon: LayoutDashboard },
   { title: "Employees", path: "/employees", icon: Users },
   { title: "Departments", path: "/departments", icon: Building2 },
@@ -38,6 +40,11 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const { isAdmin } = useUserRole();
+
+  const navItems = isAdmin
+    ? [{ title: "Admin", path: "/admin", icon: Shield }, ...baseNavItems]
+    : baseNavItems;
 
   const handleLogout = async () => {
     await signOut();
